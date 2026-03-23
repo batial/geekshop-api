@@ -1,5 +1,5 @@
 // model/BaseEntity.java
-package batial.geekshop.model;
+package batial.geekshop.api.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
