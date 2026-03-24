@@ -16,7 +16,7 @@ public class Category extends BaseEntity {
     private String name;
 
     @Column(nullable = false, unique = true)
-    private String slug;
+    private String slug; // nombre formateado para URLs
 
     private String description;
 
