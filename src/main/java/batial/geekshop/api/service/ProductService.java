@@ -1,0 +1,87 @@
+package batial.geekshop.api.service;
+
+import batial.geekshop.api.model.Product;
+import batial.geekshop.api.model.Category;
+import batial.geekshop.api.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+
+    private final ProductRepository productRepository;
+    private final CategoryService categoryService;
+
+    public Page<Product> findAll(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return productRepository.findByActiveTrue(pageable);
+    }
+
+    public Page<Product> findByCategory(UUID categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return productRepository.findByActiveTrueAndCategoryId(categoryId, pageable);
+    }
+
+    public Product findById(UUID id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
+
+    public Product create(String name, String description, BigDecimal price,
+                          Integer stock, Product.ProductType type, UUID categoryId) {
+
+        Category category = categoryService.findById(categoryId);
+
+        Product product = Product.builder()
+                .name(name)
+                .description(description)
+                .price(price)
+                .stock(stock)
+                .type(type)
+                .category(category)
+                .active(true)
+                .build();
+
+        return productRepository.save(product);
+    }
+
+    public Product update(UUID id, String name, String description,
+                          BigDecimal price, Integer stock, UUID categoryId) {
+
+        Product product = findById(id);
+        Category category = categoryService.findById(categoryId);
+
+        product.setName(name);
+        product.setDescription(description);
+        product.setPrice(price);
+        product.setStock(stock);
+        product.setCategory(category);
+
+        return productRepository.save(product);
+    }
+
+    public void delete(UUID id) {
+        Product product = findById(id);
+        product.setActive(false);
+        productRepository.save(product);
+    }
+
+    public Product updateStock(UUID id, int quantity) {
+        Product product = findById(id);
+
+        int newStock = product.getStock() - quantity;
+        if (newStock < 0) {
+            throw new RuntimeException("Insufficient stock for product: " + product.getName());
+        }
+
+        product.setStock(newStock);
+        return productRepository.save(product);
+    }
+}
