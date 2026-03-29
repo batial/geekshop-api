@@ -2,6 +2,7 @@ package batial.geekshop.api.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -36,9 +37,10 @@ public class Product extends BaseEntity {
     private Boolean active = true;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> images;
+    @Builder.Default
+    private List<ProductImage> images = new ArrayList<>();
 
     public enum ProductType {
-        SHIRT, PRINT_3D, ACCESSORY
+        SHIRT, PRINT_3D, ACCESSORY //Tipos de productos disponibles
     }
 }

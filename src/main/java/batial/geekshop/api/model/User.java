@@ -2,6 +2,8 @@
 package batial.geekshop.api.model;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,7 +28,8 @@ public class User extends BaseEntity {
     private Role role = Role.CUSTOMER;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Order> orders;
+    @Builder.Default
+    private List<Order> orders = new ArrayList<>();
 
     public enum Role {
         CUSTOMER, ADMIN
