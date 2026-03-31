@@ -1,5 +1,6 @@
 package batial.geekshop.api.service;
 
+import batial.geekshop.api.exception.ApiException;
 import batial.geekshop.api.model.Product;
 import batial.geekshop.api.model.Category;
 import batial.geekshop.api.repository.ProductRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -31,7 +33,7 @@ public class ProductService {
 
     public Product findById(UUID id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ApiException("Product not found", HttpStatus.NOT_FOUND));
     }
 
     public Product create(String name, String description, BigDecimal price,
@@ -78,7 +80,7 @@ public class ProductService {
 
         int newStock = product.getStock() - quantity;
         if (newStock < 0) {
-            throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            throw new ApiException("Insufficient stock for product: " + product.getName(), HttpStatus.BAD_REQUEST);
         }
 
         product.setStock(newStock);

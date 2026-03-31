@@ -1,9 +1,11 @@
 package batial.geekshop.api.service;
 
+import batial.geekshop.api.exception.ApiException;
 import batial.geekshop.api.model.Order;
 import batial.geekshop.api.model.Payment;
 import batial.geekshop.api.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -33,7 +35,7 @@ public class PaymentService {
     @Transactional
     public Payment updateFromWebhook(String mpReference, Payment.PaymentStatus status) {
         Payment payment = paymentRepository.findByMpReference(mpReference)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new ApiException("Payment not found", HttpStatus.NOT_FOUND));
 
         payment.setStatus(status);
 
@@ -57,12 +59,12 @@ public class PaymentService {
 
     public Payment findByOrder(UUID orderId) {
         return paymentRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new ApiException("Payment not found", HttpStatus.NOT_FOUND));
     }
 
     public void assignMpReference(UUID paymentId, String mpReference) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new ApiException("Payment not found", HttpStatus.NOT_FOUND));
         payment.setMpReference(mpReference);
         paymentRepository.save(payment);
     }

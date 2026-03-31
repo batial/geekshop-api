@@ -1,8 +1,10 @@
 package batial.geekshop.api.service;
 
+import batial.geekshop.api.exception.ApiException;
 import batial.geekshop.api.model.User;
 import batial.geekshop.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ public class UserService {
 
     public User register(String name, String email, String password) {
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already registered");
+            throw new ApiException("Email already registered", HttpStatus.CONFLICT);
         }
 
         User user = User.builder()
@@ -33,12 +35,12 @@ public class UserService {
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
     }
 
     public User findById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
     }
 
     public boolean checkPassword(String rawPassword, String hashedPassword) {

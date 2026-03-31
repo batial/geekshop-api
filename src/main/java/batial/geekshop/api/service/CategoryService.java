@@ -1,8 +1,10 @@
 package batial.geekshop.api.service;
 
+import batial.geekshop.api.exception.ApiException;
 import batial.geekshop.api.model.Category;
 import batial.geekshop.api.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
@@ -19,17 +21,17 @@ public class CategoryService {
 
     public Category findById(UUID id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ApiException("Category not found", HttpStatus.NOT_FOUND));
     }
 
     public Category findBySlug(String slug) {
         return categoryRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ApiException("Category not found", HttpStatus.NOT_FOUND));
     }
 
     public Category create(String name, String description) {
         if (categoryRepository.existsByName(name)) {
-            throw new RuntimeException("Category already exists");
+            throw new ApiException("Category already exists", HttpStatus.CONFLICT);
         }
 
         Category category = Category.builder()
@@ -45,7 +47,7 @@ public class CategoryService {
         Category category = findById(id);
 
         if (!category.getName().equals(name) && categoryRepository.existsByName(name)) {
-            throw new RuntimeException("Category name already exists");
+            throw new ApiException("Category name already exists", HttpStatus.CONFLICT);
         }
 
         category.setName(name);

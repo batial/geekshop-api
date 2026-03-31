@@ -1,8 +1,10 @@
 package batial.geekshop.api.service;
 
+import batial.geekshop.api.exception.ApiException;
 import batial.geekshop.api.model.*;
 import batial.geekshop.api.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -60,7 +62,7 @@ public class OrderService {
 
     public Order findById(UUID id) {
         return orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ApiException("Order not found", HttpStatus.NOT_FOUND));
     }
 
     public List<Order> findAll() {
