@@ -1,5 +1,6 @@
 package batial.geekshop.api.controller;
 
+import batial.geekshop.api.dto.response.PaymentResponse;
 import batial.geekshop.api.model.Payment;
 import batial.geekshop.api.service.PaymentService;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,9 @@ public class PaymentController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Payment> create(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(paymentService.create(
-                UUID.fromString(body.get("orderId"))
-        ));
+    public ResponseEntity<PaymentResponse> create(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(new PaymentResponse(
+                paymentService.create(UUID.fromString(body.get("orderId")))));
     }
 
     @PostMapping("/webhook")
@@ -40,7 +40,7 @@ public class PaymentController {
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<Payment> findByOrder(@PathVariable UUID orderId) {
-        return ResponseEntity.ok(paymentService.findByOrder(orderId));
+    public ResponseEntity<PaymentResponse> findByOrder(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(new PaymentResponse(paymentService.findByOrder(orderId)));
     }
 }

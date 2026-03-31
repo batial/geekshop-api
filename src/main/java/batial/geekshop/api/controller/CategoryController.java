@@ -1,5 +1,7 @@
 package batial.geekshop.api.controller;
 
+import batial.geekshop.api.dto.request.CategoryRequest;
+import batial.geekshop.api.dto.response.CategoryResponse;
 import batial.geekshop.api.model.Category;
 import batial.geekshop.api.service.CategoryService;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -20,32 +23,27 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Category>> findAll() {
-        return ResponseEntity.ok(categoryService.findAll());
+    public ResponseEntity<List<CategoryResponse>> findAll() {
+        return ResponseEntity.ok(categoryService.findAll().stream()
+                .map(CategoryResponse::new)
+                .collect(Collectors.toList()));
     }
-
     @GetMapping("/{id}")
-    public ResponseEntity<Category> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok(categoryService.findById(id));
+    public ResponseEntity<CategoryResponse> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(new CategoryResponse(categoryService.findById(id)));
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Category> create(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(categoryService.create(
-                body.get("name"),
-                body.get("description")
-        ));
+    public ResponseEntity<CategoryResponse> create(@RequestBody CategoryRequest request) {
+        return ResponseEntity.ok(new CategoryResponse(
+                categoryService.create(request.getName(), request.getDescription())));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Category> update(@PathVariable UUID id,
-                                           @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(categoryService.update(
-                id,
-                body.get("name"),
-                body.get("description")
-        ));
+    public ResponseEntity<CategoryResponse> update(@PathVariable UUID id, @RequestBody CategoryRequest request) {
+        return ResponseEntity.ok(new CategoryResponse(
+                categoryService.update(id, request.getName(), request.getDescription())));
     }
 }

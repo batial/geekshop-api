@@ -1,5 +1,7 @@
 package batial.geekshop.api.controller;
 
+import batial.geekshop.api.dto.request.ProductRequest;
+import batial.geekshop.api.dto.response.ProductResponse;
 import batial.geekshop.api.model.Product;
 import batial.geekshop.api.service.ProductService;
 import org.springframework.data.domain.Page;
@@ -21,51 +23,41 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Product>> findAll(
+    public ResponseEntity<Page<ProductResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy) {
-        return ResponseEntity.ok(productService.findAll(page, size, sortBy));
+        return ResponseEntity.ok(productService.findAll(page, size, sortBy).map(ProductResponse::new));
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<Page<Product>> findByCategory(
+    public ResponseEntity<Page<ProductResponse>> findByCategory(
             @PathVariable UUID categoryId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(productService.findByCategory(categoryId, page, size));
+        return ResponseEntity.ok(productService.findByCategory(categoryId, page, size).map(ProductResponse::new));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok(productService.findById(id));
+    public ResponseEntity<ProductResponse> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(new ProductResponse(productService.findById(id)));
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> create(@RequestBody Map<String, Object> body) {
-        return ResponseEntity.ok(productService.create(
-                (String) body.get("name"),
-                (String) body.get("description"),
-                new BigDecimal(body.get("price").toString()),
-                (Integer) body.get("stock"),
-                Product.ProductType.valueOf((String) body.get("type")),
-                UUID.fromString((String) body.get("categoryId"))
-        ));
+    public ResponseEntity<ProductResponse> create(@RequestBody ProductRequest request) {
+        return ResponseEntity.ok(new ProductResponse(productService.create(
+                request.getName(), request.getDescription(), request.getPrice(),
+                request.getStock(), Product.ProductType.valueOf(request.getType()),
+                request.getCategoryId())));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> update(@PathVariable UUID id,
-                                          @RequestBody Map<String, Object> body) {
-        return ResponseEntity.ok(productService.update(
-                id,
-                (String) body.get("name"),
-                (String) body.get("description"),
-                new BigDecimal(body.get("price").toString()),
-                (Integer) body.get("stock"),
-                UUID.fromString((String) body.get("categoryId"))
-        ));
+    public ResponseEntity<ProductResponse> update(@PathVariable UUID id, @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(new ProductResponse(productService.update(
+                id, request.getName(), request.getDescription(), request.getPrice(),
+                request.getStock(), request.getCategoryId())));
     }
 
     @DeleteMapping("/{id}")
