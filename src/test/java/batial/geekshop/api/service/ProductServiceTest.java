@@ -58,9 +58,9 @@ public class ProductServiceTest {
         Product product = buildProduct(buildCategory());
         Page<Product> page = new PageImpl<>(List.of(product));
 
-        when(productRepository.findByActiveTrue(any(Pageable.class))).thenReturn(page);
+        when(productRepository.findByFilters(isNull(), isNull(), any(Pageable.class))).thenReturn(page);
 
-        Page<Product> result = productService.findAll(0, 20, "createdAt");
+        Page<Product> result = productService.findAll(0, 20, "createdAt", null, null);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getName()).isEqualTo("Remera Naruto");

@@ -8,6 +8,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -129,13 +132,14 @@ public class OrderServiceTest {
         Order order1 = Order.builder().status(Order.OrderStatus.PENDING).total(BigDecimal.TEN).shippingAddress("Calle 1").build();
         Order order2 = Order.builder().status(Order.OrderStatus.CONFIRMED).total(BigDecimal.TEN).shippingAddress("Calle 2").build();
 
-        when(orderRepository.findByUserId(userId)).thenReturn(List.of(order1, order2));
+        Page<Order> page = new PageImpl<>(List.of(order1, order2));
+        when(orderRepository.findByUserId(eq(userId), any(Pageable.class))).thenReturn(page);
 
-        List<Order> result = orderService.findByUser(userId);
+        Page<Order> result = orderService.findByUser(userId, 0, 10);
 
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getStatus()).isEqualTo(Order.OrderStatus.PENDING);
-        assertThat(result.get(1).getStatus()).isEqualTo(Order.OrderStatus.CONFIRMED);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(Order.OrderStatus.PENDING);
+        assertThat(result.getContent().get(1).getStatus()).isEqualTo(Order.OrderStatus.CONFIRMED);
     }
 
     @Test

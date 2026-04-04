@@ -26,8 +26,18 @@ public class ProductController {
     public ResponseEntity<Page<ProductResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy) {
-        return ResponseEntity.ok(productService.findAll(page, size, sortBy).map(ProductResponse::new));
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String type) {
+
+        Product.ProductType productType = null;
+        if (type != null) {
+            productType = Product.ProductType.valueOf(type.toUpperCase());
+        }
+
+        return ResponseEntity.ok(
+                productService.findAll(page, size, sortBy, search, productType).map(ProductResponse::new)
+        );
     }
 
     @GetMapping("/category/{categoryId}")
@@ -65,5 +75,15 @@ public class ProductController {
     public ResponseEntity<?> delete(@PathVariable UUID id) {
         productService.delete(id);
         return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
+    }
+
+    @GetMapping("/category/slug/{slug}")
+    public ResponseEntity<Page<ProductResponse>> findByCategorySlug(
+            @PathVariable String slug,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(
+                productService.findByCategorySlug(slug, page, size).map(ProductResponse::new)
+        );
     }
 }

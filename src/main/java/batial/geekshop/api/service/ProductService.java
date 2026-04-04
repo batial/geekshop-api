@@ -21,9 +21,9 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryService categoryService;
 
-    public Page<Product> findAll(int page, int size, String sortBy) {
+    public Page<Product> findAll(int page, int size, String sortBy, String search, Product.ProductType type) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return productRepository.findByActiveTrue(pageable);
+        return productRepository.findByFilters(search, type, pageable);
     }
 
     public Page<Product> findByCategory(UUID categoryId, int page, int size) {
@@ -85,5 +85,11 @@ public class ProductService {
 
         product.setStock(newStock);
         return productRepository.save(product);
+    }
+
+    public Page<Product> findByCategorySlug(String slug, int page, int size) {
+        Category category = categoryService.findBySlug(slug);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return productRepository.findByActiveTrueAndCategoryId(category.getId(), pageable);
     }
 }

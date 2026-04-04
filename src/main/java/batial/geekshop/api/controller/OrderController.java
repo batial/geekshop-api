@@ -6,6 +6,7 @@ import batial.geekshop.api.model.Order;
 import batial.geekshop.api.model.User;
 import batial.geekshop.api.security.JwtService;
 import batial.geekshop.api.service.OrderService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -40,12 +41,15 @@ public class OrderController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<OrderResponse>> myOrders(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Page<OrderResponse>> myOrders(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         String email = jwtService.extractEmail(authHeader.substring(7));
         User user = userService.findByEmail(email);
-        return ResponseEntity.ok(orderService.findByUser(user.getId()).stream()
-                .map(OrderResponse::new)
-                .collect(Collectors.toList()));
+        return ResponseEntity.ok(
+                orderService.findByUser(user.getId(), page, size).map(OrderResponse::new)
+        );
     }
 
     @GetMapping("/{id}")
@@ -55,10 +59,12 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<OrderResponse>> findAll() {
-        return ResponseEntity.ok(orderService.findAll().stream()
-                .map(OrderResponse::new)
-                .collect(Collectors.toList()));
+    public ResponseEntity<Page<OrderResponse>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(
+                orderService.findAll(page, size).map(OrderResponse::new)
+        );
     }
 
     @PutMapping("/{id}/status")
