@@ -1,6 +1,6 @@
 # GeekShop API
 
-REST API for a geek-themed e-commerce platform. Built with Spring Boot and PostgreSQL.
+REST API for a geek e-commerce store. Built with Spring Boot and PostgreSQL.
 
 ---
 
@@ -12,7 +12,7 @@ REST API for a geek-themed e-commerce platform. Built with Spring Boot and Postg
 - **PostgreSQL** as database
 - **Docker** for local database setup
 - **Springdoc OpenAPI** for interactive documentation
-- **JUnit 5** + **Mockito** for unit testing
+- **JUnit 5** + **Mockito** for unit testing (26 tests)
 - **Lombok** for boilerplate reduction
 
 ---
@@ -33,7 +33,7 @@ src/
 └── service/         # Business logic
 ```
 
-The API follows a layered architecture:
+Layered architecture:
 
 ```
 Controller → Service → Repository → PostgreSQL
@@ -46,12 +46,20 @@ Controller → Service → Repository → PostgreSQL
 | Entity | Description |
 |---|---|
 | `User` | Customers and admins |
-| `Category` | Product categories (e.g. shirts, 3D prints) |
+| `Category` | Flexible product categories created from the admin panel |
 | `Product` | Items for sale with stock management |
 | `ProductImage` | Multiple images per product (Cloudinary URLs) |
 | `Order` | Purchase orders with status lifecycle |
 | `OrderItem` | Line items within an order |
 | `Payment` | Payment records linked to MercadoPago |
+
+### ProductType vs Category
+
+`ProductType` is a fixed enum (`SHIRT`, `PRINT_3D`, `ACCESSORY`) used for top-level navigation grouping. `Category` is flexible and managed from the admin panel (e.g. "Remeras Anime", "Figuras Dragon Ball"). A product has both — they serve different purposes:
+
+- **Navbar** uses `type` to group products at the top level
+- **Catalog** uses `category` to refine within each type
+- **Combined filtering** — `?type=SHIRT&slug=remeras-anime`
 
 ---
 
@@ -80,16 +88,9 @@ This starts a PostgreSQL 16 container on port `5432` with database `geekshop`.
 
 ### 3. Configure environment
 
-Edit `src/main/resources/application.properties` with your local values:
+The database runs automatically via Docker with the default credentials. Only update these if you have your own Cloudinary or MercadoPago accounts:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/geekshop
-spring.datasource.username=postgres
-spring.datasource.password=postgres
-
-jwt.secret=your-secret-key-minimum-32-characters
-jwt.expiration=86400000
-
 cloudinary.cloud-name=your-cloud-name
 cloudinary.api-key=your-api-key
 cloudinary.api-secret=your-api-secret
@@ -107,7 +108,7 @@ The API will be available at `http://localhost:8080`.
 
 ## API documentation
 
-Interactive Swagger UI is available at:
+Interactive Swagger UI available at:
 
 ```
 http://localhost:8080/swagger-ui/index.html
@@ -132,9 +133,11 @@ To test protected endpoints:
 ### Products
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| GET | `/api/products` | Public | List products (paginated) |
+| GET | `/api/products` | Public | List products (paginated) — params: `page`, `size`, `sortBy`, `search`, `type` |
 | GET | `/api/products/:id` | Public | Product detail |
-| GET | `/api/products/category/:id` | Public | Products by category |
+| GET | `/api/products/types` | Public | List available product types |
+| GET | `/api/products/category/:id` | Public | Products by category ID |
+| GET | `/api/products/category/slug/:slug` | Public | Products by category slug |
 | POST | `/api/products` | Admin | Create product |
 | PUT | `/api/products/:id` | Admin | Update product |
 | DELETE | `/api/products/:id` | Admin | Soft delete product |
@@ -143,6 +146,7 @@ To test protected endpoints:
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/api/categories` | Public | List categories |
+| GET | `/api/categories/:id` | Public | Category detail |
 | POST | `/api/categories` | Admin | Create category |
 | PUT | `/api/categories/:id` | Admin | Update category |
 
@@ -150,9 +154,9 @@ To test protected endpoints:
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/api/orders` | Auth | Create order from cart |
-| GET | `/api/orders/my` | Auth | My orders |
+| GET | `/api/orders/my` | Auth | My orders (paginated) |
 | GET | `/api/orders/:id` | Auth | Order detail |
-| GET | `/api/orders` | Admin | All orders |
+| GET | `/api/orders` | Admin | All orders (paginated) |
 | PUT | `/api/orders/:id/status` | Admin | Update order status |
 
 ### Payments
@@ -161,6 +165,12 @@ To test protected endpoints:
 | POST | `/api/payments/create` | Auth | Initiate payment |
 | POST | `/api/payments/webhook` | Public | MercadoPago webhook |
 | GET | `/api/payments/order/:id` | Auth | Payment by order |
+
+### Users (admin)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| GET | `/api/users` | Admin | List all users |
+| PUT | `/api/users/:id/role` | Admin | Update user role |
 
 ---
 
@@ -176,7 +186,7 @@ PENDING → CONFIRMED → SHIPPED → DELIVERED
 
 ## Key technical decisions
 
-**UUID as primary keys** — prevents sequential ID enumeration attacks common in e-commerce (e.g. `/orders/42` exposing other users' orders).
+**UUID as primary keys** — prevents sequential ID enumeration attacks common in e-commerce.
 
 **Soft delete for products** — products are marked `active = false` instead of being deleted, preserving historical order data integrity.
 
@@ -185,6 +195,8 @@ PENDING → CONFIRMED → SHIPPED → DELIVERED
 **Stateless authentication** — JWT tokens with no server-side sessions, enabling horizontal scaling.
 
 **DTOs for all responses** — entities are never serialized directly, preventing circular reference issues and over-exposure of internal data.
+
+**ProductType + Category separation** — `ProductType` handles top-level navigation grouping while `Category` handles flexible catalog organization managed from the admin panel.
 
 ---
 
@@ -195,6 +207,14 @@ mvn test
 ```
 
 26 unit tests covering all service layer business logic.
+
+---
+
+## Known technical debt
+
+- `ProductType` is a fixed enum — adding new product types requires a code change and redeployment
+- JWT has no refresh token mechanism — expires after 24h
+- Cloudinary and MercadoPago integrations are service-layer ready but not fully wired to production credentials
 
 ---
 
