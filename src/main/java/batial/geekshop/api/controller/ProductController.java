@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
@@ -86,4 +89,13 @@ public class ProductController {
                 productService.findByCategorySlug(slug, page, size).map(ProductResponse::new)
         );
     }
+    @GetMapping("/types")
+    public ResponseEntity<List<String>> getTypes() {
+        return ResponseEntity.ok(
+                Arrays.stream(Product.ProductType.values())
+                        .map(Product.ProductType::name)
+                        .collect(Collectors.toList())
+        );
+    }
+
 }
