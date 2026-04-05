@@ -35,9 +35,10 @@ public class UserServiceTest {
         when(passwordEncoder.encode("123456")).thenReturn("hashed_password");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        User result = userService.register("Sebas", "sebas@mail.com", "123456");
+        User result = userService.register("Sebas","Debe", "sebas@mail.com", "123456");
 
-        assertThat(result.getName()).isEqualTo("Sebas");
+        assertThat(result.getFirstName()).isEqualTo("Sebas");
+        assertThat(result.getLastName()).isEqualTo("Debe");
         assertThat(result.getEmail()).isEqualTo("sebas@mail.com");
         assertThat(result.getPasswordHash()).isEqualTo("hashed_password");
         assertThat(result.getRole()).isEqualTo(User.Role.CUSTOMER);
@@ -48,7 +49,7 @@ public class UserServiceTest {
     void register_shouldThrowException_whenEmailAlreadyExists() {
         when(userRepository.existsByEmail("sebas@mail.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.register("Sebas", "sebas@mail.com", "123456"))
+        assertThatThrownBy(() -> userService.register("Sebas","Debe", "sebas@mail.com", "123456"))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("Email already registered");
 
@@ -58,7 +59,8 @@ public class UserServiceTest {
     @Test
     void findByEmail_shouldReturnUser_whenExists() {
         User user = User.builder()
-                .name("Sebas")
+                .firstName("Sebas")
+                .firstName("Sebas")
                 .email("sebas@mail.com")
                 .passwordHash("hashed")
                 .role(User.Role.CUSTOMER)

@@ -12,6 +12,8 @@ public class OrderResponse {
     private String status;
     private BigDecimal total;
     private String shippingAddress;
+    private String city;
+    private String phone;
     private LocalDateTime createdAt;
     private List<OrderItemResponse> items;
 
@@ -19,6 +21,8 @@ public class OrderResponse {
         this.id = order.getId();
         this.status = order.getStatus().name();
         this.total = order.getTotal();
+        this.city = order.getCity();
+        this.phone = order.getPhone();
         this.shippingAddress = order.getShippingAddress();
         this.createdAt = order.getCreatedAt();
         this.items = order.getItems().stream()
@@ -32,4 +36,6 @@ public class OrderResponse {
     public String getShippingAddress() { return shippingAddress; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public List<OrderItemResponse> getItems() { return items; }
+    public String getCity() {return city;}
+    public String getPhone() {return phone;}
 }

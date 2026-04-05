@@ -36,7 +36,8 @@ public class OrderController {
             @RequestBody OrderRequest request) {
         String email = jwtService.extractEmail(authHeader.substring(7));
         User user = userService.findByEmail(email);
-        Order order = orderService.create(user.getId(), request.getItems(), request.getShippingAddress());
+        Order order = orderService
+                .create(user.getId(), request.getItems(), request.getShippingAddress(), request.getCity(),request.getPhone());
         return ResponseEntity.ok(new OrderResponse(order));
     }
 

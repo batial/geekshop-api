@@ -28,6 +28,12 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private String shippingAddress;
 
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String phone;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();

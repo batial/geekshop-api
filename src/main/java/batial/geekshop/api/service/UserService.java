@@ -18,13 +18,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User register(String name, String email, String password) {
+    public User register(String firstName,String lastName, String email, String password) {
         if (userRepository.existsByEmail(email)) {
             throw new ApiException("Email already registered", HttpStatus.CONFLICT);
         }
 
         User user = User.builder()
-                .name(name)
+                .firstName(firstName)
+                .lastName(lastName)
                 .email(email)
                 .passwordHash(passwordEncoder.encode(password))
                 .role(User.Role.CUSTOMER)

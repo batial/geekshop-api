@@ -24,9 +24,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        User user = userService.register(request.getName(), request.getEmail(), request.getPassword());
+        User user = userService.register(request.getFirstName(),request.getLastName(), request.getEmail(), request.getPassword());
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
-        return ResponseEntity.ok(new AuthResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), token));
+        return ResponseEntity.ok(new AuthResponse(user.getId(), user.getFirstName(),user.getLastName(), user.getEmail(), user.getRole().name(), token));
     }
 
     @PostMapping("/login")
@@ -36,13 +36,13 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
-        return ResponseEntity.ok(new AuthResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), token));
+        return ResponseEntity.ok(new AuthResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getRole().name(), token));
     }
 
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> me(@RequestHeader("Authorization") String authHeader) {
         String email = jwtService.extractEmail(authHeader.substring(7));
         User user = userService.findByEmail(email);
-        return ResponseEntity.ok(new AuthResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), null));
+        return ResponseEntity.ok(new AuthResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getRole().name(), null));
     }
 }

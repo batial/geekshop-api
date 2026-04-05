@@ -36,8 +36,9 @@ public class OrderServiceTest {
 
     private User buildUser() {
         return User.builder()
-                .name("Sebas")
-                .email("sebas@mail.com")
+                .firstName("Sebas")
+                .lastName("Debe")
+                .email("sebasDeb@mail.com")
                 .passwordHash("hashed")
                 .role(User.Role.CUSTOMER)
                 .build();
@@ -68,11 +69,13 @@ public class OrderServiceTest {
         when(productService.updateStock(productId, 2)).thenReturn(product);
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Order result = orderService.create(userId, items, "Calle 123");
+        Order result = orderService.create(userId, items, "Calle 123", "Montevideo", "099123456");
 
         assertThat(result.getTotal()).isEqualByComparingTo("59.98");
         assertThat(result.getItems()).hasSize(1);
         assertThat(result.getShippingAddress()).isEqualTo("Calle 123");
+        assertThat(result.getCity()).isEqualTo("Montevideo");
+        assertThat(result.getPhone()).isEqualTo("099123456");
         assertThat(result.getStatus()).isEqualTo(Order.OrderStatus.PENDING);
         verify(productService, times(1)).updateStock(productId, 2);
     }
@@ -91,8 +94,7 @@ public class OrderServiceTest {
         when(productService.updateStock(productId, 3)).thenReturn(product);
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Order result = orderService.create(userId, items, "Calle 123");
-
+        Order result = orderService.create(userId, items, "Calle 123", "Montevideo", "099123456");
         OrderItem item = result.getItems().get(0);
         assertThat(item.getUnitPrice()).isEqualByComparingTo("29.99");
         assertThat(item.getQuantity()).isEqualTo(3);
@@ -149,6 +151,8 @@ public class OrderServiceTest {
                 .status(Order.OrderStatus.PENDING)
                 .total(BigDecimal.TEN)
                 .shippingAddress("Calle 123")
+                .city("Montevideo")
+                .phone("099123456")
                 .build();
 
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));

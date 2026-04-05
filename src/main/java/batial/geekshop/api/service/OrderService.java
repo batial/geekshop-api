@@ -24,13 +24,15 @@ public class OrderService {
     private final UserService userService;
 
     @Transactional
-    public Order create(UUID userId, Map<UUID, Integer> items, String shippingAddress) {
+    public Order create(UUID userId, Map<UUID, Integer> items, String shippingAddress, String city, String phone) {
 
         User user = userService.findById(userId);
 
         Order order = Order.builder()
                 .user(user)
                 .shippingAddress(shippingAddress)
+                .city(city)
+                .phone(phone)
                 .status(Order.OrderStatus.PENDING)
                 .total(BigDecimal.ZERO)
                 .build();
