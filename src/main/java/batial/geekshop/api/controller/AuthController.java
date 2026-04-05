@@ -6,6 +6,7 @@ import batial.geekshop.api.dto.response.AuthResponse;
 import batial.geekshop.api.model.User;
 import batial.geekshop.api.security.JwtService;
 import batial.geekshop.api.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -23,14 +24,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         User user = userService.register(request.getFirstName(),request.getLastName(), request.getEmail(), request.getPassword());
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
         return ResponseEntity.ok(new AuthResponse(user.getId(), user.getFirstName(),user.getLastName(), user.getEmail(), user.getRole().name(), token));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         User user = userService.findByEmail(request.getEmail());
         if (!userService.checkPassword(request.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.status(401).build();

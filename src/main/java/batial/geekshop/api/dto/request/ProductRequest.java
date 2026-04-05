@@ -1,14 +1,29 @@
 package batial.geekshop.api.dto.request;
 
+import jakarta.validation.constraints.*;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public class ProductRequest {
+    @NotBlank(message = "Name is required")
+    @Size(max = 100, message = "Name must not exceed 100 characters")
     private String name;
+
     private String description;
+
+    @NotNull(message = "Price is required")
+    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private BigDecimal price;
+
+    @NotNull(message = "Stock is required")
+    @Min(value = 0, message = "Stock cannot be negative")
     private Integer stock;
+
+    @NotBlank(message = "Type is required")
     private String type;
+
+    @NotNull(message = "Category is required")
     private UUID categoryId;
 
     public String getName() { return name; }

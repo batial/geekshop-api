@@ -6,6 +6,7 @@ import batial.geekshop.api.model.Order;
 import batial.geekshop.api.model.User;
 import batial.geekshop.api.security.JwtService;
 import batial.geekshop.api.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,6 +33,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse> create(
+            @Valid
             @RequestHeader("Authorization") String authHeader,
             @RequestBody OrderRequest request) {
         String email = jwtService.extractEmail(authHeader.substring(7));

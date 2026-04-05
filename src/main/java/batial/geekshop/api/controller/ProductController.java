@@ -4,6 +4,7 @@ import batial.geekshop.api.dto.request.ProductRequest;
 import batial.geekshop.api.dto.response.ProductResponse;
 import batial.geekshop.api.model.Product;
 import batial.geekshop.api.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,7 +59,7 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponse> create(@RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(new ProductResponse(productService.create(
                 request.getName(), request.getDescription(), request.getPrice(),
                 request.getStock(), Product.ProductType.valueOf(request.getType()),
@@ -67,7 +68,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponse> update(@PathVariable UUID id, @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> update(@PathVariable UUID id,@Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(new ProductResponse(productService.update(
                 id, request.getName(), request.getDescription(), request.getPrice(),
                 request.getStock(), request.getCategoryId())));

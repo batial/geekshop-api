@@ -4,6 +4,7 @@ import batial.geekshop.api.dto.request.CategoryRequest;
 import batial.geekshop.api.dto.response.CategoryResponse;
 import batial.geekshop.api.model.Category;
 import batial.geekshop.api.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -35,14 +36,14 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> create(@RequestBody CategoryRequest request) {
+    public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request) {
         return ResponseEntity.ok(new CategoryResponse(
                 categoryService.create(request.getName(), request.getDescription())));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> update(@PathVariable UUID id, @RequestBody CategoryRequest request) {
+    public ResponseEntity<CategoryResponse> update(@Valid @PathVariable UUID id, @RequestBody CategoryRequest request) {
         return ResponseEntity.ok(new CategoryResponse(
                 categoryService.update(id, request.getName(), request.getDescription())));
     }
