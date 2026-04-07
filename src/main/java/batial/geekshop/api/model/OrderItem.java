@@ -25,4 +25,10 @@ public class OrderItem extends BaseEntity {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
+
+    @Column(name = "size")
+    private String size;  // Talle de la variante (solo para remeras)
+
+    @Column(name = "color")
+    private String color;  // Color de la variante (solo para remeras)
 }

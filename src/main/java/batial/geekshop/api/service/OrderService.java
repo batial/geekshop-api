@@ -48,6 +48,8 @@ public class OrderService {
 
             Product product = productService.findById(productId);
             BigDecimal itemPrice;
+            String size = null;
+            String color = null;
 
             if (itemRequest.getVariantId() != null && !itemRequest.getVariantId().isEmpty()) {
                 UUID variantId = UUID.fromString(itemRequest.getVariantId());
@@ -64,6 +66,9 @@ public class OrderService {
 
                 itemPrice = variant.getFinalPrice();
 
+                size = variant.getSize();
+                color = variant.getColor();
+
             } else {
                 productService.updateStock(productId, quantity);
                 itemPrice = product.getPrice();
@@ -74,6 +79,8 @@ public class OrderService {
                     .product(product)
                     .quantity(quantity)
                     .unitPrice(itemPrice)
+                    .size(size)
+                    .color(color)
                     .build();
 
             order.getItems().add(item);
