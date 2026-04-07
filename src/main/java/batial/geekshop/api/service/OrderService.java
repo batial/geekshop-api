@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
+import batial.geekshop.api.dto.request.OrderItemRequest;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,9 +24,10 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductService productService;
     private final UserService userService;
+    private final ProductVariantService variantService;
 
     @Transactional
-    public Order create(UUID userId, Map<UUID, Integer> items, String shippingAddress, String city, String phone) {
+    public Order create(UUID userId, List<OrderItemRequest> itemsRequest, String shippingAddress, String city, String phone) {
 
         User user = userService.findById(userId);
 
@@ -39,22 +42,42 @@ public class OrderService {
 
         BigDecimal total = BigDecimal.ZERO;
 
-        for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
-            UUID productId = entry.getKey();
-            Integer quantity = entry.getValue();
+        for (OrderItemRequest itemRequest : itemsRequest) {
+            UUID productId = UUID.fromString(itemRequest.getProductId());
+            Integer quantity = itemRequest.getQuantity();
 
             Product product = productService.findById(productId);
-            productService.updateStock(productId, quantity);
+            BigDecimal itemPrice;
+
+            if (itemRequest.getVariantId() != null && !itemRequest.getVariantId().isEmpty()) {
+                UUID variantId = UUID.fromString(itemRequest.getVariantId());
+                ProductVariant variant = variantService.getVariantById(variantId);
+
+                if (variant.getStock() < quantity) {
+                    throw new ApiException(
+                            "Insufficient stock for variant: " + variant.getSize() + " " + variant.getColor(),
+                            HttpStatus.BAD_REQUEST
+                    );
+                }
+
+                variantService.decreaseStock(variantId, quantity);
+
+                itemPrice = variant.getFinalPrice();
+
+            } else {
+                productService.updateStock(productId, quantity);
+                itemPrice = product.getPrice();
+            }
 
             OrderItem item = OrderItem.builder()
                     .order(order)
                     .product(product)
                     .quantity(quantity)
-                    .unitPrice(product.getPrice())
+                    .unitPrice(itemPrice)
                     .build();
 
             order.getItems().add(item);
-            total = total.add(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
+            total = total.add(itemPrice.multiply(BigDecimal.valueOf(quantity)));
         }
 
         order.setTotal(total);

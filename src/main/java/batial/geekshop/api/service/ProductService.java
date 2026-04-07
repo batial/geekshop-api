@@ -4,6 +4,7 @@ import batial.geekshop.api.exception.ApiException;
 import batial.geekshop.api.model.Product;
 import batial.geekshop.api.model.Category;
 import batial.geekshop.api.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,7 +13,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
+import batial.geekshop.api.dto.request.ProductVariantRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryService categoryService;
+    private final ProductVariantService variantService;
 
     public Page<Product> findAll(int page, int size, String sortBy, String search, Product.ProductType type) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
@@ -36,8 +40,10 @@ public class ProductService {
                 .orElseThrow(() -> new ApiException("Product not found", HttpStatus.NOT_FOUND));
     }
 
+    @Transactional
     public Product create(String name, String description, BigDecimal price,
-                          Integer stock, Product.ProductType type, UUID categoryId) {
+                          Integer stock, Product.ProductType type, UUID categoryId,
+                          List<ProductVariantRequest> variants) {  // ← Nuevo parámetro
 
         Category category = categoryService.findById(categoryId);
 
@@ -51,7 +57,21 @@ public class ProductService {
                 .active(true)
                 .build();
 
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+
+        if (type == Product.ProductType.SHIRT && variants != null && !variants.isEmpty()) {
+            for (ProductVariantRequest variantRequest : variants) {
+                variantService.createVariant(
+                        savedProduct,
+                        variantRequest.getSize(),
+                        variantRequest.getColor(),
+                        variantRequest.getStock(),
+                        variantRequest.getPriceModifier()
+                );
+            }
+        }
+
+        return savedProduct;
     }
 
     public Product update(UUID id, String name, String description,

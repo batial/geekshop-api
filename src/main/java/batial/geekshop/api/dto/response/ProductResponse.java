@@ -16,6 +16,7 @@ public class ProductResponse {
     private String categoryName;
     private List<String> imageUrls;
     private String mainImageUrl;
+    private List<ProductVariantResponse> variants;
 
     public ProductResponse(Product product) {
         this.id = product.getId();
@@ -33,6 +34,13 @@ public class ProductResponse {
                 .map(img -> img.getUrl())
                 .findFirst()
                 .orElse(null);
+        this.variants = product.getVariants().stream()
+                        .map(ProductVariantResponse::fromVariant)
+                        .collect(Collectors.toList());
+    }
+
+    public static ProductResponse fromProduct(Product product) {
+        return new ProductResponse(product);
     }
 
     public UUID getId() { return id; }
@@ -44,4 +52,5 @@ public class ProductResponse {
     public String getCategoryName() { return categoryName; }
     public List<String> getImageUrls() { return imageUrls; }
     public String getMainImageUrl() { return mainImageUrl; }
+    public List<ProductVariantResponse> getVariants() { return variants; }
 }

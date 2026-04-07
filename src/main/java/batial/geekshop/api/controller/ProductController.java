@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Arrays;
@@ -59,11 +58,18 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
-        return ResponseEntity.ok(new ProductResponse(productService.create(
-                request.getName(), request.getDescription(), request.getPrice(),
-                request.getStock(), Product.ProductType.valueOf(request.getType()),
-                request.getCategoryId())));
+    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest request) {
+        Product product = productService.create(
+                request.getName(),
+                request.getDescription(),
+                request.getPrice(),
+                request.getStock(),
+                Product.ProductType.valueOf(request.getType().toUpperCase()),
+                UUID.fromString(request.getCategoryId()),
+                request.getVariants()
+        );
+
+        return ResponseEntity.ok(ProductResponse.fromProduct(product));
     }
 
     @PutMapping("/{id}")
@@ -71,7 +77,7 @@ public class ProductController {
     public ResponseEntity<ProductResponse> update(@PathVariable UUID id,@Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(new ProductResponse(productService.update(
                 id, request.getName(), request.getDescription(), request.getPrice(),
-                request.getStock(), request.getCategoryId())));
+                request.getStock(), UUID.fromString(request.getCategoryId()))));
     }
 
     @DeleteMapping("/{id}")

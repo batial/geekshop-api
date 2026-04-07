@@ -3,6 +3,7 @@ package batial.geekshop.api.dto.request;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public class ProductRequest {
@@ -24,18 +25,22 @@ public class ProductRequest {
     private String type;
 
     @NotNull(message = "Category is required")
-    private UUID categoryId;
+    private String categoryId;
+
+    private List<ProductVariantRequest> variants;
 
     public String getName() { return name; }
     public String getDescription() { return description; }
     public BigDecimal getPrice() { return price; }
     public Integer getStock() { return stock; }
     public String getType() { return type; }
-    public UUID getCategoryId() { return categoryId; }
+    public String getCategoryId() { return categoryId; }
     public void setName(String name) { this.name = name; }
     public void setDescription(String description) { this.description = description; }
     public void setPrice(BigDecimal price) { this.price = price; }
     public void setStock(Integer stock) { this.stock = stock; }
     public void setType(String type) { this.type = type; }
-    public void setCategoryId(UUID categoryId) { this.categoryId = categoryId; }
+    public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
+    public List<ProductVariantRequest> getVariants() {return variants;}
+    public void setVariants(List<ProductVariantRequest> variants) {this.variants = variants;}
 }

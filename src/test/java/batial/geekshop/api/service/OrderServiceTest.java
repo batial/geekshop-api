@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import batial.geekshop.api.dto.request.OrderItemRequest;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -33,6 +34,9 @@ public class OrderServiceTest {
 
     @InjectMocks
     private OrderService orderService;
+
+    @Mock
+    private ProductVariantService variantService;
 
     private User buildUser() {
         return User.builder()
@@ -62,7 +66,9 @@ public class OrderServiceTest {
         User user = buildUser();
         Product product = buildProduct(50);
 
-        Map<UUID, Integer> items = Map.of(productId, 2);
+        List<OrderItemRequest> items = List.of(
+                createOrderItemRequest(productId.toString(), null, 2)
+        );
 
         when(userService.findById(userId)).thenReturn(user);
         when(productService.findById(productId)).thenReturn(product);
@@ -87,7 +93,9 @@ public class OrderServiceTest {
         User user = buildUser();
         Product product = buildProduct(50);
 
-        Map<UUID, Integer> items = Map.of(productId, 3);
+        List<OrderItemRequest> items = List.of(
+                createOrderItemRequest(productId.toString(), null, 3)
+        );
 
         when(userService.findById(userId)).thenReturn(user);
         when(productService.findById(productId)).thenReturn(product);
@@ -95,10 +103,42 @@ public class OrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Order result = orderService.create(userId, items, "Calle 123", "Montevideo", "099123456");
+
         OrderItem item = result.getItems().get(0);
         assertThat(item.getUnitPrice()).isEqualByComparingTo("29.99");
         assertThat(item.getQuantity()).isEqualTo(3);
         assertThat(result.getTotal()).isEqualByComparingTo("89.97");
+    }
+
+    @Test
+    void create_shouldCreateOrder_withVariants() {
+        UUID userId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UUID variantId = UUID.randomUUID();
+
+        User user = buildUser();
+        Product product = buildProduct(0); // Stock en 0 porque está en variantes
+
+        ProductVariant variant = new ProductVariant();
+        variant.setSize("M");
+        variant.setColor("Negro");
+        variant.setStock(10);
+        variant.setPriceModifier(BigDecimal.ZERO);
+        variant.setProduct(product);
+
+        List<OrderItemRequest> items = List.of(
+                createOrderItemRequest(productId.toString(), variantId.toString(), 2)
+        );
+
+        when(userService.findById(userId)).thenReturn(user);
+        when(productService.findById(productId)).thenReturn(product);
+        when(variantService.getVariantById(variantId)).thenReturn(variant);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Order result = orderService.create(userId, items, "Calle 123", "Montevideo", "099123456");
+
+        assertThat(result.getTotal()).isEqualByComparingTo("59.98"); // 29.99 * 2
+        verify(variantService, times(1)).decreaseStock(variantId, 2);
     }
 
     @Test
@@ -162,5 +202,13 @@ public class OrderServiceTest {
 
         assertThat(result.getStatus()).isEqualTo(Order.OrderStatus.CONFIRMED);
         verify(orderRepository, times(1)).save(order);
+    }
+
+    private OrderItemRequest createOrderItemRequest(String productId, String variantId, int quantity) {
+        OrderItemRequest item = new OrderItemRequest();
+        item.setProductId(productId);
+        item.setVariantId(variantId);
+        item.setQuantity(quantity);
+        return item;
     }
 }

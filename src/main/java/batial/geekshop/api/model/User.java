@@ -26,6 +26,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.CUSTOMER;

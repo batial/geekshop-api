@@ -1,5 +1,6 @@
 package batial.geekshop.api.service;
 
+import batial.geekshop.api.dto.request.ProductVariantRequest;
 import batial.geekshop.api.exception.ApiException;
 import batial.geekshop.api.model.Category;
 import batial.geekshop.api.model.Product;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +32,9 @@ public class ProductServiceTest {
 
     @Mock
     private CategoryService categoryService;
+
+    @Mock
+    private ProductVariantService variantService;
 
     @InjectMocks
     private ProductService productService;
@@ -100,7 +105,8 @@ public class ProductServiceTest {
         Product result = productService.create(
                 "Remera Naruto", "Remera negra",
                 new BigDecimal("29.99"), 50,
-                Product.ProductType.SHIRT, categoryId);
+                Product.ProductType.SHIRT, categoryId,
+                null);
 
         assertThat(result.getName()).isEqualTo("Remera Naruto");
         assertThat(result.getPrice()).isEqualByComparingTo("29.99");
@@ -108,6 +114,38 @@ public class ProductServiceTest {
         assertThat(result.getCategory().getName()).isEqualTo("Remeras");
         assertThat(result.getActive()).isTrue();
         verify(productRepository, times(1)).save(any(Product.class));
+    }
+
+    @Test
+    void create_shouldCreateProductWithVariants_whenTypeIsShirt() {
+        Category category = buildCategory();
+        UUID categoryId = UUID.randomUUID();
+
+        List<ProductVariantRequest> variants = Arrays.asList(
+                createVariantRequest("M", "Negro", 10, BigDecimal.ZERO),
+                createVariantRequest("L", "Blanco", 5, BigDecimal.ZERO)
+        );
+
+        when(categoryService.findById(categoryId)).thenReturn(category);
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Product result = productService.create(
+                "Remera Naruto", "Remera negra",
+                new BigDecimal("29.99"), 0,  // stock 0 porque está en variantes
+                Product.ProductType.SHIRT, categoryId,
+                variants);
+
+        assertThat(result.getName()).isEqualTo("Remera Naruto");
+        verify(variantService, times(2)).createVariant(any(), anyString(), anyString(), anyInt(), any());
+    }
+
+    private ProductVariantRequest createVariantRequest(String size, String color, int stock, BigDecimal priceModifier) {
+        ProductVariantRequest request = new ProductVariantRequest();
+        request.setSize(size);
+        request.setColor(color);
+        request.setStock(stock);
+        request.setPriceModifier(priceModifier);
+        return request;
     }
 
     @Test

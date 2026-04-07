@@ -18,6 +18,7 @@ public class ProductImage extends BaseEntity {
     @Column(nullable = false)
     private String url;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isMain = false;
 }

@@ -26,6 +26,7 @@ public class Product extends BaseEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer stock = 0;
 
@@ -33,12 +34,17 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private ProductType type;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductVariant> variants = new ArrayList<>();
 
     public enum ProductType {
         SHIRT, PRINT_3D, ACCESSORY //Tipos de productos disponibles
