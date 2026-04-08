@@ -30,16 +30,10 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String type) {
-
-        Product.ProductType productType = null;
-        if (type != null) {
-            productType = Product.ProductType.valueOf(type.toUpperCase());
-        }
+            @RequestParam(required = false) String search) {
 
         return ResponseEntity.ok(
-                productService.findAll(page, size, sortBy, search, productType).map(ProductResponse::new)
+                productService.findAll(page, size, sortBy, search).map(ProductResponse::new)
         );
     }
 
@@ -64,7 +58,6 @@ public class ProductController {
                 request.getDescription(),
                 request.getPrice(),
                 request.getStock(),
-                Product.ProductType.valueOf(request.getType().toUpperCase()),
                 UUID.fromString(request.getCategoryId()),
                 request.getVariants()
         );
@@ -94,14 +87,6 @@ public class ProductController {
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(
                 productService.findByCategorySlug(slug, page, size).map(ProductResponse::new)
-        );
-    }
-    @GetMapping("/types")
-    public ResponseEntity<List<String>> getTypes() {
-        return ResponseEntity.ok(
-                Arrays.stream(Product.ProductType.values())
-                        .map(Product.ProductType::name)
-                        .collect(Collectors.toList())
         );
     }
 

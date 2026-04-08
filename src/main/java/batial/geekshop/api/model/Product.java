@@ -30,10 +30,6 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private Integer stock = 0;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ProductType type;
-
     @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
@@ -46,7 +42,4 @@ public class Product extends BaseEntity {
     @Builder.Default
     private List<ProductVariant> variants = new ArrayList<>();
 
-    public enum ProductType {
-        SHIRT, PRINT_3D, ACCESSORY //Tipos de productos disponibles
-    }
 }

@@ -25,4 +25,7 @@ public class Category extends BaseEntity {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Product> products = new ArrayList<>();
+
+    @Column(name = "has_variants", nullable = false)
+    private Boolean hasVariants = false;
 }

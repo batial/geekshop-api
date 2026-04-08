@@ -54,7 +54,6 @@ public class OrderServiceTest {
                 .description("Remera negra")
                 .price(new BigDecimal("29.99"))
                 .stock(stock)
-                .type(Product.ProductType.SHIRT)
                 .active(true)
                 .build();
     }

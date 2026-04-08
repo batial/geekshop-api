@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import batial.geekshop.api.dto.request.ProductVariantRequest;
 
@@ -25,9 +26,9 @@ public class ProductService {
     private final CategoryService categoryService;
     private final ProductVariantService variantService;
 
-    public Page<Product> findAll(int page, int size, String sortBy, String search, Product.ProductType type) {
+    public Page<Product> findAll(int page, int size, String sortBy, String search) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return productRepository.findByFilters(search, type, pageable);
+        return productRepository.findByFilters(search, pageable);
     }
 
     public Page<Product> findByCategory(UUID categoryId, int page, int size) {
@@ -42,8 +43,8 @@ public class ProductService {
 
     @Transactional
     public Product create(String name, String description, BigDecimal price,
-                          Integer stock, Product.ProductType type, UUID categoryId,
-                          List<ProductVariantRequest> variants) {  // ← Nuevo parámetro
+                          Integer stock, UUID categoryId,
+                          List<ProductVariantRequest> variants) {
 
         Category category = categoryService.findById(categoryId);
 
@@ -52,14 +53,13 @@ public class ProductService {
                 .description(description)
                 .price(price)
                 .stock(stock)
-                .type(type)
                 .category(category)
                 .active(true)
                 .build();
 
         Product savedProduct = productRepository.save(product);
 
-        if (type == Product.ProductType.SHIRT && variants != null && !variants.isEmpty()) {
+        if (category.getHasVariants() && variants != null && !variants.isEmpty()) {
             for (ProductVariantRequest variantRequest : variants) {
                 variantService.createVariant(
                         savedProduct,

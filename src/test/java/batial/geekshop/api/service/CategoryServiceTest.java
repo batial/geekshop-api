@@ -66,7 +66,7 @@ public class CategoryServiceTest {
         when(categoryRepository.existsByName("Remeras")).thenReturn(false);
         when(categoryRepository.save(any(Category.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Category result = categoryService.create("Remeras", "Remeras anime y gamer");
+        Category result = categoryService.create("Remeras", "Remeras anime y gamer",false);
 
         assertThat(result.getName()).isEqualTo("Remeras");
         assertThat(result.getSlug()).isEqualTo("remeras");
@@ -78,7 +78,7 @@ public class CategoryServiceTest {
     void create_shouldThrowException_whenNameAlreadyExists() {
         when(categoryRepository.existsByName("Remeras")).thenReturn(true);
 
-        assertThatThrownBy(() -> categoryService.create("Remeras", "desc"))
+        assertThatThrownBy(() -> categoryService.create("Remeras", "desc",null))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("Category already exists");
 
@@ -98,7 +98,7 @@ public class CategoryServiceTest {
         when(categoryRepository.existsByName("Figuras")).thenReturn(false);
         when(categoryRepository.save(any(Category.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Category result = categoryService.update(id, "Figuras", "desc nueva");
+        Category result = categoryService.update(id, "Figuras", "desc nueva",null);
 
         assertThat(result.getName()).isEqualTo("Figuras");
         assertThat(result.getSlug()).isEqualTo("figuras");
@@ -118,7 +118,7 @@ public class CategoryServiceTest {
         when(categoryRepository.save(any(Category.class))).thenAnswer(inv -> inv.getArgument(0));
 
         assertThatNoException().isThrownBy(() ->
-                categoryService.update(id, "Remeras", "desc nueva"));
+                categoryService.update(id, "Remeras", "desc nueva",null));
     }
 
     @Test
@@ -132,7 +132,7 @@ public class CategoryServiceTest {
         when(categoryRepository.findById(id)).thenReturn(Optional.of(existing));
         when(categoryRepository.existsByName("Figuras")).thenReturn(true);
 
-        assertThatThrownBy(() -> categoryService.update(id, "Figuras", "desc"))
+        assertThatThrownBy(() -> categoryService.update(id, "Figuras", "desc",null))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("Category name already exists");
     }

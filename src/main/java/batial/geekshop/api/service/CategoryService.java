@@ -29,7 +29,7 @@ public class CategoryService {
                 .orElseThrow(() -> new ApiException("Category not found", HttpStatus.NOT_FOUND));
     }
 
-    public Category create(String name, String description) {
+    public Category create(String name, String description, Boolean hasVariants) {
         if (categoryRepository.existsByName(name)) {
             throw new ApiException("Category already exists", HttpStatus.CONFLICT);
         }
@@ -38,12 +38,13 @@ public class CategoryService {
                 .name(name)
                 .slug(generateSlug(name))
                 .description(description)
+                .hasVariants(hasVariants != null ? hasVariants : false)
                 .build();
 
         return categoryRepository.save(category);
     }
 
-    public Category update(UUID id, String name, String description) {
+    public Category update(UUID id, String name, String description, Boolean hasVariants) {
         Category category = findById(id);
 
         if (!category.getName().equals(name) && categoryRepository.existsByName(name)) {
@@ -53,6 +54,7 @@ public class CategoryService {
         category.setName(name);
         category.setSlug(generateSlug(name));
         category.setDescription(description);
+        category.setHasVariants(hasVariants != null ? hasVariants : false);
 
         return categoryRepository.save(category);
     }

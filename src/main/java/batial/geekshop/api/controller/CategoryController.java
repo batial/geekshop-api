@@ -29,6 +29,7 @@ public class CategoryController {
                 .map(CategoryResponse::new)
                 .collect(Collectors.toList()));
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(new CategoryResponse(categoryService.findById(id)));
@@ -38,13 +39,22 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request) {
         return ResponseEntity.ok(new CategoryResponse(
-                categoryService.create(request.getName(), request.getDescription())));
+                categoryService.create(
+                        request.getName(),
+                        request.getDescription(),
+                        request.getHasVariants()
+                )));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> update(@Valid @PathVariable UUID id, @RequestBody CategoryRequest request) {
         return ResponseEntity.ok(new CategoryResponse(
-                categoryService.update(id, request.getName(), request.getDescription())));
+                categoryService.update(
+                        id,
+                        request.getName(),
+                        request.getDescription(),
+                        request.getHasVariants()
+                )));
     }
 }

@@ -43,6 +43,7 @@ public class ProductServiceTest {
         return Category.builder()
                 .name("Remeras")
                 .slug("remeras")
+                .hasVariants(true)
                 .build();
     }
 
@@ -52,7 +53,6 @@ public class ProductServiceTest {
                 .description("Remera negra")
                 .price(new BigDecimal("29.99"))
                 .stock(50)
-                .type(Product.ProductType.SHIRT)
                 .category(category)
                 .active(true)
                 .build();
@@ -63,9 +63,9 @@ public class ProductServiceTest {
         Product product = buildProduct(buildCategory());
         Page<Product> page = new PageImpl<>(List.of(product));
 
-        when(productRepository.findByFilters(isNull(), isNull(), any(Pageable.class))).thenReturn(page);
+        when(productRepository.findByFilters(isNull(), any(Pageable.class))).thenReturn(page);
 
-        Page<Product> result = productService.findAll(0, 20, "createdAt", null, null);
+        Page<Product> result = productService.findAll(0, 20, "createdAt", null);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getName()).isEqualTo("Remera Naruto");
@@ -104,8 +104,7 @@ public class ProductServiceTest {
 
         Product result = productService.create(
                 "Remera Naruto", "Remera negra",
-                new BigDecimal("29.99"), 50,
-                Product.ProductType.SHIRT, categoryId,
+                new BigDecimal("29.99"), 50, categoryId,
                 null);
 
         assertThat(result.getName()).isEqualTo("Remera Naruto");
@@ -132,7 +131,7 @@ public class ProductServiceTest {
         Product result = productService.create(
                 "Remera Naruto", "Remera negra",
                 new BigDecimal("29.99"), 0,  // stock 0 porque está en variantes
-                Product.ProductType.SHIRT, categoryId,
+                categoryId,
                 variants);
 
         assertThat(result.getName()).isEqualTo("Remera Naruto");
