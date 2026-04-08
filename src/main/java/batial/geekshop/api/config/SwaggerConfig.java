@@ -16,8 +16,8 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("GeekShop API")
-                        .version("1.0")
-                        .description("API REST para la tienda geek"))
+                        .version("2.0.0")
+                        .description("REST API for geek e-commerce platform with dynamic categories and product variants"))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication",

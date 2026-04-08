@@ -12,28 +12,25 @@ REST API for a geek e-commerce store. Built with Spring Boot and PostgreSQL.
 - **PostgreSQL** as database
 - **Docker** for local database setup
 - **Springdoc OpenAPI** for interactive documentation
-- **JUnit 5** + **Mockito** for unit testing (26 tests)
+- **JUnit 5** + **Mockito** for unit testing (35 tests)
 - **Lombok** for boilerplate reduction
 
 ---
 
 ## Architecture
 
-```
-src/
-├── config/          # Security, CORS, Swagger configuration
-├── controller/      # REST endpoints
-├── dto/
-│   ├── request/     # Incoming request bodies
-│   └── response/    # Outgoing response bodies
-├── exception/       # Global exception handler
-├── model/           # JPA entities
-├── repository/      # Spring Data repositories
-├── security/        # JWT filter and service
-└── service/         # Business logic
-```
+**Package structure:**
+- `config/` - Security, CORS, Swagger configuration
+- `controller/` - REST endpoints
+- `dto/request/` - Incoming request bodies
+- `dto/response/` - Outgoing response bodies
+- `exception/` - Global exception handler
+- `model/` - JPA entities
+- `repository/` - Spring Data repositories
+- `security/` - JWT filter and service
+- `service/` - Business logic
 
-Layered architecture:
+**Layered architecture:**
 
 ```
 Controller → Service → Repository → PostgreSQL
@@ -46,20 +43,30 @@ Controller → Service → Repository → PostgreSQL
 | Entity | Description |
 |---|---|
 | `User` | Customers and admins |
-| `Category` | Flexible product categories created from the admin panel |
+| `Category` | Flexible product categories with optional variant support |
 | `Product` | Items for sale with stock management |
+| `ProductVariant` | Size and color variants for clothing products |
 | `ProductImage` | Multiple images per product (Cloudinary URLs) |
 | `Order` | Purchase orders with status lifecycle |
-| `OrderItem` | Line items within an order |
+| `OrderItem` | Line items within an order (includes variant details) |
 | `Payment` | Payment records linked to MercadoPago |
 
-### ProductType vs Category
+### Category-based product organization
 
-`ProductType` is a fixed enum (`SHIRT`, `PRINT_3D`, `ACCESSORY`) used for top-level navigation grouping. `Category` is flexible and managed from the admin panel (e.g. "Remeras Anime", "Figuras Dragon Ball"). A product has both — they serve different purposes:
+Categories are fully dynamic and managed from the admin panel. Each category has a `hasVariants` flag that determines whether its products support size/color variants:
 
-- **Navbar** uses `type` to group products at the top level
-- **Catalog** uses `category` to refine within each type
-- **Combined filtering** — `?type=SHIRT&slug=remeras-anime`
+- **Categories with variants** (`hasVariants: true`) — Clothing items like t-shirts, hoodies, jackets
+- **Categories without variants** (`hasVariants: false`) — Simple products like 3D prints, accessories, posters
+
+**Example structure:**
+Category: "Remeras Anime" (hasVariants: true)
+└─ Product: "Remera Naruto"
+└─ Variants: S-Negro, M-Negro, L-Negro, M-Blanco, L-Blanco
+Category: "Impresiones 3D" (hasVariants: false)
+└─ Product: "Figura Goku SSJ"
+└─ No variants (single SKU)
+
+This architecture allows adding new product types (hoodies, jackets, etc.) without code changes — just create a new category from the admin panel.
 
 ---
 
@@ -109,10 +116,7 @@ The API will be available at `http://localhost:8080`.
 ## API documentation
 
 Interactive Swagger UI available at:
-
-```
 http://localhost:8080/swagger-ui/index.html
-```
 
 To test protected endpoints:
 1. Call `POST /api/auth/login` to get a JWT token
@@ -133,12 +137,11 @@ To test protected endpoints:
 ### Products
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| GET | `/api/products` | Public | List products (paginated) — params: `page`, `size`, `sortBy`, `search`, `type` |
-| GET | `/api/products/:id` | Public | Product detail |
-| GET | `/api/products/types` | Public | List available product types |
+| GET | `/api/products` | Public | List products (paginated) — params: `page`, `size`, `sortBy`, `search` |
+| GET | `/api/products/:id` | Public | Product detail with variants |
 | GET | `/api/products/category/:id` | Public | Products by category ID |
 | GET | `/api/products/category/slug/:slug` | Public | Products by category slug |
-| POST | `/api/products` | Admin | Create product |
+| POST | `/api/products` | Admin | Create product (with optional variants) |
 | PUT | `/api/products/:id` | Admin | Update product |
 | DELETE | `/api/products/:id` | Admin | Soft delete product |
 
@@ -147,15 +150,23 @@ To test protected endpoints:
 |---|---|---|---|
 | GET | `/api/categories` | Public | List categories |
 | GET | `/api/categories/:id` | Public | Category detail |
-| POST | `/api/categories` | Admin | Create category |
+| POST | `/api/categories` | Admin | Create category (with `hasVariants` flag) |
 | PUT | `/api/categories/:id` | Admin | Update category |
+
+### Product Variants
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| GET | `/api/variants/product/:id` | Public | List variants for a product |
+| POST | `/api/variants` | Admin | Add variant to product |
+| PUT | `/api/variants/:id` | Admin | Update variant |
+| DELETE | `/api/variants/:id` | Admin | Delete variant |
 
 ### Orders
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| POST | `/api/orders` | Auth | Create order from cart |
+| POST | `/api/orders` | Auth | Create order (supports variant selection) |
 | GET | `/api/orders/my` | Auth | My orders (paginated) |
-| GET | `/api/orders/:id` | Auth | Order detail |
+| GET | `/api/orders/:id` | Auth | Order detail (includes variant info) |
 | GET | `/api/orders` | Admin | All orders (paginated) |
 | PUT | `/api/orders/:id/status` | Admin | Update order status |
 
@@ -175,14 +186,13 @@ To test protected endpoints:
 ---
 
 ## Order status lifecycle
-
-```
 PENDING → CONFIRMED → SHIPPED → DELIVERED
-              ↓
-          CANCELLED
-```
+↓
+CANCELLED
 
 ---
+
+
 
 ## Key technical decisions
 
@@ -192,11 +202,13 @@ PENDING → CONFIRMED → SHIPPED → DELIVERED
 
 **Unit price snapshot in OrderItem** — the price at purchase time is stored in `OrderItem.unitPrice`, so historical orders remain accurate even if product prices change later.
 
+**Variant details in OrderItem** — size and color are stored as strings in order items, ensuring order history is preserved even if variants are deleted.
+
 **Stateless authentication** — JWT tokens with no server-side sessions, enabling horizontal scaling.
 
 **DTOs for all responses** — entities are never serialized directly, preventing circular reference issues and over-exposure of internal data.
 
-**ProductType + Category separation** — `ProductType` handles top-level navigation grouping while `Category` handles flexible catalog organization managed from the admin panel.
+**Category-driven variant logic** — the `hasVariants` flag on categories determines product behavior, allowing new product types to be added without code changes.
 
 ---
 
@@ -206,13 +218,12 @@ PENDING → CONFIRMED → SHIPPED → DELIVERED
 mvn test
 ```
 
-26 unit tests covering all service layer business logic.
+35 unit tests covering all service layer business logic, including variant management and order integration.
 
 ---
 
 ## Known technical debt
 
-- `ProductType` is a fixed enum — adding new product types requires a code change and redeployment
 - JWT has no refresh token mechanism — expires after 24h
 - Cloudinary and MercadoPago integrations are service-layer ready but not fully wired to production credentials
 
