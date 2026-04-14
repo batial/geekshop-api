@@ -95,6 +95,17 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    public void activate(UUID id) {
+        Product product = findById(id);
+        product.setActive(true);
+        productRepository.save(product);
+    }
+
+    public Page<Product> findAllForAdmin(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return productRepository.findAll(pageable);
+    }
+
     public Product updateStock(UUID id, int quantity) {
         Product product = findById(id);
 

@@ -80,6 +80,23 @@ public class ProductController {
         return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
     }
 
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<ProductResponse>> findAllForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size) {
+        return ResponseEntity.ok(
+                productService.findAllForAdmin(page, size).map(ProductResponse::new)
+        );
+    }
+
+    @PatchMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> activate(@PathVariable UUID id) {
+        productService.activate(id);
+        return ResponseEntity.ok(Map.of("message", "Product activated successfully"));
+    }
+
     @GetMapping("/category/slug/{slug}")
     public ResponseEntity<Page<ProductResponse>> findByCategorySlug(
             @PathVariable String slug,

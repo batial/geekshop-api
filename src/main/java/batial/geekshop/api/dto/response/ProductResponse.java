@@ -12,6 +12,8 @@ public class ProductResponse {
     private String description;
     private BigDecimal price;
     private Integer stock;
+    private Boolean active;
+    private UUID categoryId;
     private String categoryName;
     private List<String> imageUrls;
     private String mainImageUrl;
@@ -23,6 +25,8 @@ public class ProductResponse {
         this.description = product.getDescription();
         this.price = product.getPrice();
         this.stock = product.getStock();
+        this.active = product.getActive();
+        this.categoryId = product.getCategory().getId();
         this.categoryName = product.getCategory().getName();
         this.imageUrls = product.getImages().stream()
                 .map(img -> img.getUrl())
@@ -46,6 +50,8 @@ public class ProductResponse {
     public String getDescription() { return description; }
     public BigDecimal getPrice() { return price; }
     public Integer getStock() { return stock; }
+    public Boolean getActive() { return active; }
+    public UUID getCategoryId() { return categoryId; }
     public String getCategoryName() { return categoryName; }
     public List<String> getImageUrls() { return imageUrls; }
     public String getMainImageUrl() { return mainImageUrl; }
